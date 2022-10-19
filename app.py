@@ -18,16 +18,14 @@ async def root():
     return {"message": "hello world"}
 
 
-# Endpoint para traer todos los usuarios
+# Endpoint para listar los usuarios de la base de datos
 @app.get("/user")
 async def GetUser():
     info = []
-
     for y in mycol.find():
         print(y)
         info.append((y["name"], y["last_name"],
                     y["identification"], y["numero"]))
-
     return {
         "Usuario": info
     }
@@ -35,16 +33,15 @@ async def GetUser():
 # Endpoint para filtrar por identificador via params
 
 
-@app.get("/user/identification/")
-async def Item(identification: int):
-    y = mycol.find_one({"identification": identification})
+@app.get("/user/identification/{id}")
+async def Item(id: int):
+    y = mycol.find_one({"identification": id})
     print(y)
     return {
         "nombre": y["name"],
         "Apellido": y["last_name"],
         "numero": y["numero"]
     }
-
 
 class Item(BaseModel):
     name: str
@@ -53,24 +50,27 @@ class Item(BaseModel):
     numero: Union[int, None] = None
 
 
-@app.put("/user/create")
-async def create_item(item: Item):
+@app.put("/user/edit/identification/{id}")
+async def update_item(id: int , user: Item):
+    mycol.find_one_and_update({"identification": id}, {"$set":dict(user)})
+    return("se creo correctamente")
 
+
+@app.post("/user/create")
+async def create_item(item: Item):
     data = {
         "name": item.name,
         "last_name": item.last_name,
         "identification": item.identification,
         "numero": item.numero,
-        "message": "se creo exitosamente el usuario"
     }
-
     mycol.insert_one(data)
-    return(item)
+    return (f"se edito exitosamente el usuario")
 
 
-@app.delete("/user/delete/identification/")
-async def Item(identification: int):
-    y = mycol.find_one_and_delete({"identification": identification})
+@app.delete("/user/delete/identification/{id}")
+async def Item(id: int):
+    y = mycol.find_one_and_delete({"identification": id})
     print(y)
     if (y != None):
         return {
