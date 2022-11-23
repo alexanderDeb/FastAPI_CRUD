@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from Config.db import conection
 from Schemas.array import arraysEntity, arrayEntity
-from Models.array import Array
+from Models.array import Array, ArrayEdit
 from bson import ObjectId
 
 array = APIRouter()
@@ -22,6 +22,14 @@ def create_array(array: Array):
     id = conection.EstructuraDatosPrueba.Arreglos.insert_one(new_array).inserted_id
     array = conection.EstructuraDatosPrueba.Arreglos.find_one({"_id": id})
     return arrayEntity(array)
+
+@array.put('/array/{id}')
+def edit_array(id: str, array: ArrayEdit):
+    edit_array = str(array)
+    data = arrayEntity(conection.EstructuraDatosPrueba.Arreglos.find_one({"_id": ObjectId(id)}))
+    data["data"].append(edit_array)
+    conection.EstructuraDatosPrueba.Arreglos.find_one_and_update({"_id": ObjectId(id)},{"$set":data})
+    return data
 
 @array.delete('/array/{id}')
 def delete_array(id: str):
